@@ -1,24 +1,87 @@
-# LeafCure
+# 🌿 LeafCure
 
-LeafCure is an AI-powered plant disease diagnosis platform. Users can upload leaf images, get instant disease predictions, view treatment guidance, and track scan history through a modern dashboard.
+> AI-powered plant disease diagnosis platform that helps farmers and gardeners identify and treat plant diseases instantly.
 
-## Features
+LeafCure is a full-stack web application that leverages machine learning to diagnose plant diseases from leaf images. Users can upload photos, receive instant AI-powered predictions, access treatment guidance, and maintain a history of their plant scans.
 
-- AI-based plant disease prediction workflow
-- User authentication with admin access support
-- Admin dashboard for management and monitoring
-- Scan history and result views
-- Responsive UI with a unified green theme
+## ✨ Features
 
-## Tech Stack
+### Core Functionality
+- **AI Disease Detection**: Advanced ML models (Swin Transformer & Vision Transformer) for accurate plant disease identification
+- **Real-time Diagnosis**: Get instant disease predictions with confidence scores
+- **Treatment Guidance**: Comprehensive treatment recommendations for identified diseases
+- **History Tracking**: Searchable scan history with timestamps and results
 
-- Frontend: React + Vite + Tailwind CSS
-- Backend: FastAPI (Python)
-- Auth/Data: Firebase integration (with local fallback paths)
+### User Features
+- **User Authentication**: Secure login/registration system
+- **Dashboard**: Personalized dashboard with scan statistics and upload history
+- **Admin Panel**: Advanced management and analytics for administrators
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
+- **Rate Limiting**: API protection with intelligent rate limiting
 
-## Quick Start
+### UI/UX
+- Modern, intuitive interface with unified green theme
+- Smooth animations and transitions
+- Optimized performance with lazy loading
+- Offline support for history tracking
 
-### 1. Frontend
+## 🛠 Tech Stack
+
+### Frontend
+- **Framework**: React 18
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS
+- **State Management**: React Hooks
+- **HTTP Client**: Fetch API with custom utilities
+
+### Backend
+- **Framework**: FastAPI (Python)
+- **Authentication**: JWT-based auth with Firebase
+- **Database**: Optimized for Firebase/Firestore
+- **ML Inference**: PyTorch models (Swin & Vision Transformer)
+- **Middleware**: Custom auth, rate limiting, and security headers
+
+### ML Models
+- Swin Transformer (`swin_model.pth`)
+- Vision Transformer (`vit_model.pth`)
+
+## 📋 Prerequisites
+
+- Python 3.8 or higher
+- Node.js 16+ and npm
+- Git
+
+## 🚀 Quick Start
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/vanshpatel-017/LeaafCure.git
+cd LeafCure
+```
+
+### 2. Backend Setup
+
+```bash
+cd backend
+python -m venv venv
+
+# Activate virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the server
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Backend API will be available at `http://127.0.0.1:8000`
+
+### 3. Frontend Setup
 
 ```bash
 cd frontend
@@ -26,46 +89,216 @@ npm install
 npm run dev
 ```
 
-Frontend runs on `http://localhost:5173`.
+Frontend will be available at `http://localhost:5173`
 
-### 2. Backend
+## 🔧 Environment Configuration
 
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+### Backend (.env)
+
+Create `backend/.env`:
+
+```env
+# Firebase Configuration
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_PRIVATE_KEY=your_private_key
+FIREBASE_CLIENT_EMAIL=your_client_email
+
+# API Configuration
+API_TITLE=LeafCure API
+API_VERSION=1.0.0
+DEBUG=True
 ```
 
-Backend runs on `http://127.0.0.1:8000`.
+### Backend (service-account.json)
 
-## Environment Setup
+Place your Firebase service account JSON in `backend/service-account.json`
 
-Create and configure:
+### Frontend (.env.local)
 
-- `backend/.env`
-- `backend/service-account.json`
-- `frontend/.env.local`
-
-Recommended frontend env:
+Create `frontend/.env.local`:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000/api/v1
 ```
 
-## Project Structure
+## 📁 Project Structure
 
-```text
+```
 LeafCure/
-+-- frontend/   # React + Vite client
-+-- backend/    # FastAPI server
-+-- README.md
+│
+├── frontend/                    # React + Vite client application
+│   ├── src/
+│   │   ├── components/         # Reusable React components
+│   │   │   └── HomePage/      # Homepage sections
+│   │   ├── pages/             # Page components
+│   │   ├── services/          # API service utilities
+│   │   ├── hooks/             # Custom React hooks
+│   │   ├── utils/             # Utility functions
+│   │   ├── styles/            # CSS files
+│   │   ├── config/            # Configuration files
+│   │   ├── App.jsx            # Main App component
+│   │   └── main.jsx           # Entry point
+│   ├── package.json
+│   └── vite.config.js
+│
+├── backend/                     # FastAPI server application
+│   ├── app/
+│   │   ├── api/               # API route handlers
+│   │   │   ├── router.py      # Main router
+│   │   │   ├── contact_endpoint.py
+│   │   │   └── simple_auth_router.py
+│   │   ├── core/              # Core utilities
+│   │   │   ├── config.py      # Configuration
+│   │   │   ├── auth_utils.py  # Auth utilities
+│   │   │   ├── logging_config.py
+│   │   │   └── validators.py
+│   │   ├── middleware/        # Custom middleware
+│   │   │   ├── auth.py        # Authentication middleware
+│   │   │   ├── rate_limiter.py
+│   │   │   └── security.py
+│   │   ├── models/            # Data models
+│   │   │   └── schemas.py     # Pydantic schemas
+│   │   ├── services/          # Business logic
+│   │   │   ├── auth_service.py
+│   │   │   ├── chatbot_service.py
+│   │   │   ├── disease_service.py
+│   │   │   ├── history_service.py
+│   │   │   ├── ml_inference.py
+│   │   │   └── simple_auth.py
+│   │   └── main.py            # FastAPI app entry
+│   │
+│   ├── assets/                # ML models
+│   │   ├── swin_model.pth
+│   │   └── vit_model.pth
+│   │
+│   ├── logs/                  # Application logs
+│   ├── requirements.txt       # Python dependencies
+│   ├── service-account.json   # Firebase credentials
+│   └── Dockerfile
+│
+├── .gitignore
+└── README.md
 ```
 
-## Deployment
+## 🔌 API Endpoints
 
-- Frontend: Vercel or Netlify
-- Backend: Railway or Render
+### Authentication
+- `POST /api/v1/auth/register` - User registration
+- `POST /api/v1/auth/login` - User login
+- `POST /api/v1/auth/logout` - User logout
 
-## License
+### Disease Detection
+- `POST /api/v1/disease/predict` - Upload image and get disease prediction
+- `GET /api/v1/disease/treatments/:disease_id` - Get treatment info
 
-MIT
+### History
+- `GET /api/v1/history` - Get user's scan history
+- `DELETE /api/v1/history/:scan_id` - Delete a scan record
+
+### Admin
+- `GET /api/v1/admin/stats` - Get system statistics
+- `GET /api/v1/admin/users` - Get user list (admin only)
+
+## 🐳 Docker Deployment
+
+### Build and Run with Docker
+
+```bash
+# Build images
+docker build -t leafcure-backend ./backend
+docker build -t leafcure-frontend ./frontend
+
+# Run containers
+docker run -p 8000:8000 leafcure-backend
+docker run -p 5173:5173 leafcure-frontend
+```
+
+## 🌍 Deployment
+
+### Frontend
+- **Vercel**: Push to GitHub, connect Vercel, auto-deploys on push
+- **Netlify**: Similar to Vercel with integration to GitHub
+
+### Backend
+- **Railway**: Connect GitHub repo, set environment variables
+- **Render**: Similar to Railway, good free tier support
+- **Heroku**: Traditional option with good Python support
+
+## 🔍 Troubleshooting
+
+### Backend Issues
+
+**ModuleNotFoundError**
+```bash
+# Ensure you're in the virtual environment
+source venv/bin/activate  # macOS/Linux
+venv\Scripts\activate     # Windows
+
+# Reinstall requirements
+pip install -r requirements.txt
+```
+
+**Port Already in Use**
+```bash
+# Use different port
+uvicorn app.main:app --reload --port 8001
+```
+
+### Frontend Issues
+
+**Module not found**
+```bash
+# Clear node_modules and reinstall
+rm -rf node_modules package-lock.json
+npm install
+```
+
+**VITE_API_BASE_URL not working**
+- Ensure `.env.local` is in the frontend directory
+- Restart dev server after creating `.env.local`
+
+## 📚 Development
+
+### Running Tests
+
+```bash
+# Backend tests (when available)
+pytest backend/
+
+# Frontend tests (when available)
+npm run test
+```
+
+### Code Quality
+
+```bash
+# Backend linting
+pip install flake8
+flake8 backend/
+
+# Frontend linting
+npm run lint
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 📧 Contact & Support
+
+For issues, questions, or suggestions:
+- Open an issue on GitHub
+- Contact: [your-email@example.com]
+
+---
+
+Made with ❤️ for plant health and sustainable agriculture
