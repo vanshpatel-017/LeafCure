@@ -330,15 +330,4 @@ These files must be added locally by each developer. Never commit sensitive cred
 
 For issues, questions, or suggestions:
 - Open an issue on GitHub
-- Contact: [your-email@example.com]
-
-## 🙏 Acknowledgments
-
-- Built with FastAPI, React, and PyTorch
-- ML models: Swin Transformer & Vision Transformer
-- Styling: Tailwind CSS
-- Deployment: Firebase, Vercel, Railway
-
----
-
-Made with ❤️ for plant health and sustainable agriculture
+- Contact: [patelvanshj.17@gmail.com]
