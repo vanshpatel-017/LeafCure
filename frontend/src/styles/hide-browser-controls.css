@@ -1,0 +1,26 @@
+/* Aggressively hide all browser password controls */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-strong-password-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+  pointer-events: none !important;
+}
+
+/* Force remove any background images */
+input[type="password"] {
+  background-image: none !important;
+  background-position: 0 0 !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Ensure 16px font size to prevent zoom on mobile */
+input[type="password"] {
+  font-size: 16px !important;
+}
