@@ -56,7 +56,7 @@ LeafCure is a full-stack web application that leverages machine learning to diag
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/vanshpatel-017/LeaafCure.git
+git clone https://github.com/vanshpatel-017/LeafCure.git
 cd LeafCure
 ```
 
@@ -90,6 +90,30 @@ npm run dev
 ```
 
 Frontend will be available at `http://localhost:5173`
+
+## ⚠️ Important: First Time Setup
+
+Before running the application, you **MUST** configure the environment files with your own credentials:
+
+1. **Firebase Setup**:
+   - Create a Firebase project at [https://firebase.google.com](https://firebase.google.com)
+   - Generate a service account key and save it to `backend/service-account.json`
+   - Copy your Firebase Web API key
+
+2. **Backend Configuration**:
+   - Copy the example `.env` template to `backend/.env`
+   - Update with your Firebase project ID and credentials
+   - Set your API configuration parameters
+
+3. **Frontend Configuration**:
+   - Copy the example `.env.local` template to `frontend/.env.local`
+   - Update `VITE_API_BASE_URL` if running on a different port
+   - Add your Firebase Web API key
+
+4. **ML Models**:
+   - Place `swin_model.pth` in `backend/assets/`
+   - Place `vit_model.pth` in `backend/assets/`
+   - (Models are not included in the repository due to size constraints)
 
 ## 🔧 Environment Configuration
 
@@ -293,11 +317,27 @@ Contributions are welcome! Please:
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## � Security Note
+
+⚠️ **IMPORTANT**: This repository does not include:
+- Firebase service account keys
+- API keys and secrets
+- Machine learning model files (due to size)
+
+These files must be added locally by each developer. Never commit sensitive credentials to version control.
+
 ## 📧 Contact & Support
 
 For issues, questions, or suggestions:
 - Open an issue on GitHub
 - Contact: [your-email@example.com]
+
+## 🙏 Acknowledgments
+
+- Built with FastAPI, React, and PyTorch
+- ML models: Swin Transformer & Vision Transformer
+- Styling: Tailwind CSS
+- Deployment: Firebase, Vercel, Railway
 
 ---
 
