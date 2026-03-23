@@ -110,6 +110,9 @@ def preprocess_image(image_bytes):
     except Exception as e:
         raise ValueError(f"Failed to preprocess image: {e}")
 
+def _normalize_plant_name(name: str) -> str:
+    return ''.join(ch.lower() for ch in str(name) if ch.isalnum())
+
 def run_inference(model, input_tensor, plant_type_filter=None):
     """Run inference on a single model with optional plant type filtering"""
     try:
@@ -117,34 +120,38 @@ def run_inference(model, input_tensor, plant_type_filter=None):
         with torch.no_grad():
             outputs = model(input_tensor)
             probabilities = torch.nn.functional.softmax(outputs, dim=1)
-            
-            # Apply plant type filtering if specified
+
             if plant_type_filter:
-                print(f"Applying plant type filter: {plant_type_filter}")
-                # Create mask for classes matching the plant type
+                normalized_filter = _normalize_plant_name(plant_type_filter)
+                print(f"Applying plant type filter: {plant_type_filter} ({normalized_filter})")
+
                 plant_mask = torch.zeros_like(probabilities)
+                match_count = 0
                 for idx, class_name in enumerate(CLASS_NAMES):
-                    if plant_type_filter.lower() in class_name.lower():
+                    class_plant = class_name.split('___')[0]
+                    normalized_class_plant = _normalize_plant_name(class_plant)
+                    if (
+                        normalized_filter in normalized_class_plant
+                        or normalized_class_plant in normalized_filter
+                    ):
                         plant_mask[0, idx] = 1.0
-                
-                # Apply mask - set non-matching classes to very low probability
-                filtered_probs = probabilities * plant_mask
-                if filtered_probs.sum() > 0:
-                    # Renormalize the filtered probabilities
-                    filtered_probs = filtered_probs / filtered_probs.sum()
-                    probabilities = filtered_probs
-                    print(f"Plant filter applied - {plant_mask.sum().item()} matching classes")
+                        match_count += 1
+
+                if match_count > 0:
+                    filtered_probs = probabilities * plant_mask
+                    filtered_sum = filtered_probs.sum()
+                    if filtered_sum.item() > 0:
+                        probabilities = filtered_probs / filtered_sum
+                    print(f"Plant filter applied - {match_count} matching classes")
                 else:
-                    print(f"No classes match plant type {plant_type_filter}, using all classes")
-            
+                    print(f"No classes match plant type '{plant_type_filter}', using all classes")
+
             confidence, predicted_idx = torch.max(probabilities, 1)
-            
             idx = predicted_idx.item()
             predicted_class = CLASS_NAMES[idx] if idx < len(CLASS_NAMES) else f"Unknown_class_{idx}"
-            confidence_score = validate_confidence_score(confidence.item() * 100)  # Convert to percentage
-            
+            confidence_score = max(0.0, min(1.0, float(confidence.item())))
             return predicted_class, confidence_score
-            
+
     except Exception as e:
         raise RuntimeError(f"Inference failed: {e}")
 
@@ -266,3 +273,4 @@ def get_knowledge_base_entry(disease_name):
     
     print(f"KB: No Firebase data found for {disease_name}, returning empty arrays")
     return default_result
+

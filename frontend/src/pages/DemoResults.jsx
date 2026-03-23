@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { API_BASE_URL } from '../config/api'
+import ThemeToggle from '../components/ThemeToggle'
+import useTheme from '../hooks/useTheme'
 
 const DemoResults = () => {
   const navigate = useNavigate()
@@ -9,6 +11,7 @@ const DemoResults = () => {
   const [selectedFile, setSelectedFile] = useState(null)
   const [result, setResult] = useState(null)
   const [dragOver, setDragOver] = useState(false)
+  const { isLight, toggleTheme } = useTheme()
 
   const handleFileSelect = (files) => {
     const file = files[0]
@@ -73,11 +76,11 @@ const DemoResults = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{backgroundImage: 'url(/image/background.avif)'}}>
-      <div className="absolute inset-0 bg-black/70"></div>
+    <div className="theme-page min-h-screen bg-cover bg-center bg-fixed relative" style={{backgroundImage: 'var(--app-background-image)'}}>
+      <div className="theme-overlay absolute inset-0"></div>
       
       {/* Header */}
-      <nav className="backdrop-blur-xl border-b border-gray-700/50 relative z-10" style={{backgroundColor: 'rgba(20, 34, 22, 0.9)'}}>
+      <nav className="theme-surface-strong backdrop-blur-xl border-b relative z-10">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <svg className="w-8 h-8 text-green-400" fill="currentColor" viewBox="0 0 24 24">
@@ -86,12 +89,15 @@ const DemoResults = () => {
             <span className="text-2xl font-bold text-white">LeafCure</span>
             <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">DEMO</span>
           </div>
-          <button 
-            onClick={() => navigate('/')}
-            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-medium"
-          >
-            Back to Home
-          </button>
+          <div className="flex items-center gap-3">
+            <ThemeToggle isLight={isLight} onToggle={toggleTheme} />
+            <button 
+              onClick={() => navigate('/')}
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-medium"
+            >
+              Back to Home
+            </button>
+          </div>
         </div>
       </nav>
 

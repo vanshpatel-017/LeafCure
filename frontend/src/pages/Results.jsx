@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ThemeToggle from '../components/ThemeToggle';
+import useTheme from '../hooks/useTheme';
 
 const Results = () => {
   const navigate = useNavigate();
@@ -7,6 +9,7 @@ const Results = () => {
   const [showHeader, setShowHeader] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showDiseaseInfo, setShowDiseaseInfo] = useState(false);
+  const { isLight, toggleTheme } = useTheme();
   
   const generateReport = () => {
     const reportData = {
@@ -239,8 +242,8 @@ const Results = () => {
     return (
       <div className="min-h-screen bg-[#0f1f16] flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold text-[#E6F0EB] mb-4">No Results Found</h2>
-          <p className="text-[#A9B6B0] mb-6">Please upload an image for analysis first.</p>
+          <h2 className="text-2xl font-semibold theme-text mb-4">No Results Found</h2>
+          <p className="theme-text-soft mb-6">Please upload an image for analysis first.</p>
           <button
             onClick={() => navigate('/dashboard')}
             className="bg-[#20b657] hover:bg-[#1a9b4a] text-white px-6 py-3 rounded-lg transition-colors"
@@ -253,11 +256,11 @@ const Results = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{backgroundImage: 'url(/image/background.avif)'}}>
-      <div className="absolute inset-0 bg-black/60"></div>
+    <div className="theme-page min-h-screen bg-cover bg-center bg-fixed relative" style={{backgroundImage: 'var(--app-background-image)'}}>
+      <div className="theme-overlay absolute inset-0"></div>
       
       {/* Header */}
-      <nav className={`backdrop-blur-xl border-b border-gray-700/50 fixed w-full top-0 z-50 transition-transform duration-500 ease-in-out ${showHeader ? 'translate-y-0' : '-translate-y-full'}`} style={{backgroundColor: 'rgba(20, 34, 22, 0.9)'}}>
+      <nav className={`theme-surface-strong backdrop-blur-xl border-b fixed w-full top-0 z-50 transition-transform duration-500 ease-in-out ${showHeader ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <svg className="w-8 h-8 text-green-400" fill="currentColor" viewBox="0 0 24 24">
@@ -266,6 +269,7 @@ const Results = () => {
             <span className="text-2xl font-bold text-white">LeafCure</span>
           </div>
           <div className="flex items-center space-x-4">
+            <ThemeToggle isLight={isLight} onToggle={toggleTheme} />
             <button className="p-2 text-gray-400 hover:text-green-400 transition relative" title="Notifications">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -335,9 +339,9 @@ const Results = () => {
         <div className="max-w-6xl mx-auto">
         {/* Status Banner */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center px-6 py-3 rounded-full backdrop-blur-xl border border-green-400/30 shadow-lg shadow-green-500/20 animate-pulse" style={{backgroundColor: 'rgba(20, 34, 22, 0.9)'}}>
+          <div className="theme-surface inline-flex items-center px-6 py-3 rounded-full backdrop-blur-xl border border-green-400/30 shadow-lg shadow-green-500/10">
             <div className="w-3 h-3 bg-green-400 rounded-full mr-3 animate-ping"></div>
-            <svg className="h-5 w-5 text-[#3FFFA8] mr-3" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 24 24">
               <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
             </svg>
             <span className="text-white font-semibold">
@@ -349,12 +353,12 @@ const Results = () => {
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Image Card */}
-          <div className="backdrop-blur-xl rounded-2xl border border-green-500/30 p-6 shadow-2xl shadow-green-500/10 hover:shadow-green-500/20 transition-all duration-300" style={{backgroundColor: 'rgba(20, 34, 22, 0.9)'}}>
+          <div className="theme-surface backdrop-blur-xl rounded-2xl border border-green-500/30 p-6 shadow-2xl shadow-green-500/10 hover:shadow-green-500/20 transition-all duration-300">
             <div className="relative mb-6">
               <img
                 src={image}
                 alt="Plant leaf"
-                className="w-full h-64 object-cover rounded-xl border-2 border-[#24E57A]/40 shadow-xl"
+                className="w-full h-64 object-cover rounded-xl border-2 border-green-400/40 shadow-xl"
               />
               <div className="absolute top-3 right-3 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
                 📸 Analyzed
@@ -363,7 +367,7 @@ const Results = () => {
             <div className="space-y-3">
               <button 
                 onClick={() => navigate('/dashboard')}
-                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg flex items-center justify-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -372,7 +376,7 @@ const Results = () => {
               </button>
               <button 
                 onClick={() => navigate('/history')}
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                className="w-full bg-white/80 border border-green-500/20 text-green-900 font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:bg-white shadow-sm flex items-center justify-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -381,7 +385,7 @@ const Results = () => {
               </button>
               <button 
                 onClick={generateReport}
-                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                className="w-full bg-[#9bf7c9] border border-green-500/20 text-green-950 font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:bg-[#88efbc] shadow-sm flex items-center justify-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -392,15 +396,15 @@ const Results = () => {
           </div>
 
           {/* Diagnosis Card */}
-          <div className="lg:col-span-2 backdrop-blur-xl rounded-2xl border border-green-500/30 p-8 shadow-2xl shadow-green-500/10 hover:shadow-green-500/20 transition-all duration-300" style={{backgroundColor: 'rgba(20, 34, 22, 0.9)'}}>
+          <div className="theme-surface lg:col-span-2 backdrop-blur-xl rounded-2xl border border-green-500/30 p-8 shadow-2xl shadow-green-500/10 hover:shadow-green-500/20 transition-all duration-300">
             <div className="flex items-start justify-between mb-8">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
                   <span className="text-green-400 text-sm font-semibold uppercase tracking-wider">Diagnosis Result</span>
                 </div>
-                <h1 className="text-4xl font-bold text-white mb-3 bg-gradient-to-r from-white to-green-200 bg-clip-text text-transparent">{disease}</h1>
-                <p className="text-xl font-semibold text-[#3FFFA8] flex items-center gap-2">
+                <h1 className="text-4xl font-bold text-white mb-3">{disease}</h1>
+                <p className="text-xl font-semibold text-green-500 flex items-center gap-2">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                   </svg>
@@ -420,9 +424,9 @@ const Results = () => {
                 <span className="text-green-400 font-bold">{confidence}%</span>
               </div>
               <div className="relative">
-                <div className="w-full bg-black/40 rounded-full h-4 shadow-inner border border-white/10">
+                <div className="theme-surface-alt w-full rounded-full h-4 shadow-inner border border-white/10">
                   <div 
-                    className="bg-gradient-to-r from-[#3FFFA8] via-[#24E57A] to-[#0EB260] h-4 rounded-full transition-all duration-1000 ease-out shadow-lg relative overflow-hidden"
+                    className="bg-gradient-to-r from-green-400 via-green-500 to-emerald-600 h-4 rounded-full transition-all duration-1000 ease-out shadow-lg relative overflow-hidden"
                     style={{ width: `${confidence}%` }}
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent animate-pulse"></div>
@@ -436,7 +440,7 @@ const Results = () => {
             <div className="grid grid-cols-2 gap-4 mb-6">
               <button 
                 onClick={() => setShowDiseaseInfo(true)}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg flex items-center justify-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -496,7 +500,7 @@ const Results = () => {
                     shareModal.onclick = (e) => e.target === shareModal && shareModal.remove()
                   }
                 }}
-                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                className="bg-white/80 border border-green-500/20 text-green-900 font-semibold py-3 px-4 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:bg-white shadow-sm flex items-center justify-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
@@ -506,9 +510,9 @@ const Results = () => {
             </div>
 
             {/* Model Performance */}
-            <div className="border-t border-[#24E57A]/30 pt-6">
+            <div className="border-t border-green-400/30 pt-6">
               <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
                 Model Performance
@@ -516,21 +520,21 @@ const Results = () => {
               <div className="grid grid-cols-2 gap-4">
                 <button 
                   onClick={() => setSelectedModel('vit')}
-                  className={`p-3 rounded-lg transition-all duration-200 hover:scale-105 ${selectedModel === 'vit' ? 'bg-emerald-500/20 border-2 border-emerald-400' : 'bg-emerald-500/10 border border-emerald-500/20'}`}
+                  className={`theme-surface-alt p-3 rounded-lg transition-all duration-200 hover:scale-[1.02] ${selectedModel === 'vit' ? 'bg-green-500/20 border-2 border-green-500 shadow-md' : 'bg-green-500/10 border border-green-500/20'}`}
                 >
-                  <div className="text-emerald-400 text-sm font-medium mb-1">ViT Transformer</div>
+                  <div className="text-green-500 text-sm font-medium mb-1">ViT Transformer</div>
                   <div className="text-white font-bold text-lg">{vit_confidence}%</div>
-                  <div className="text-emerald-300 text-xs mt-1">({formatPrediction(vit_prediction).plant} {formatPrediction(vit_prediction).disease})</div>
-                  {selectedModel === 'vit' && <div className="text-emerald-300 text-xs mt-1">Selected</div>}
+                  <div className="text-green-300 text-xs mt-1">({formatPrediction(vit_prediction).plant} {formatPrediction(vit_prediction).disease})</div>
+                  {selectedModel === 'vit' && <div className="text-green-300 text-xs mt-1">Selected</div>}
                 </button>
                 <button 
                   onClick={() => setSelectedModel('swin')}
-                  className={`p-3 rounded-lg transition-all duration-200 hover:scale-105 ${selectedModel === 'swin' ? 'bg-green-500/20 border-2 border-green-400' : 'bg-green-500/10 border border-green-500/20'}`}
+                  className={`theme-surface-alt p-3 rounded-lg transition-all duration-200 hover:scale-[1.02] ${selectedModel === 'swin' ? 'bg-emerald-500/20 border-2 border-emerald-500 shadow-md' : 'bg-emerald-500/10 border border-emerald-500/20'}`}
                 >
-                  <div className="text-green-400 text-sm font-medium mb-1">Swin Transformer</div>
+                  <div className="text-emerald-500 text-sm font-medium mb-1">Swin Transformer</div>
                   <div className="text-white font-bold text-lg">{swin_confidence}%</div>
-                  <div className="text-green-300 text-xs mt-1">({formatPrediction(swin_prediction).plant} {formatPrediction(swin_prediction).disease})</div>
-                  {selectedModel === 'swin' && <div className="text-green-300 text-xs mt-1">Selected</div>}
+                  <div className="text-emerald-300 text-xs mt-1">({formatPrediction(swin_prediction).plant} {formatPrediction(swin_prediction).disease})</div>
+                  {selectedModel === 'swin' && <div className="text-emerald-300 text-xs mt-1">Selected</div>}
                 </button>
               </div>
             </div>
@@ -540,16 +544,16 @@ const Results = () => {
         {/* Treatment & Prevention */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Treatment Plan */}
-          <div className="backdrop-blur-xl rounded-2xl border border-emerald-600/30 p-8 shadow-2xl shadow-emerald-600/10 hover:shadow-emerald-600/20 transition-all duration-300" style={{backgroundColor: 'rgba(30, 20, 35, 0.9)'}}>
+          <div className="theme-surface backdrop-blur-xl rounded-2xl border border-green-500/30 p-8 shadow-2xl shadow-emerald-600/10 hover:shadow-emerald-600/20 transition-all duration-300">
             <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-full flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-700 rounded-full flex items-center justify-center shadow-lg">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                 </svg>
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-white">Treatment Plan</h3>
-                <p className="text-emerald-300 text-sm">Recommended actions for recovery</p>
+                <p className="text-green-300 text-sm">Recommended actions for recovery</p>
               </div>
             </div>
             <div className="space-y-8">
@@ -563,13 +567,13 @@ const Results = () => {
                   
                   return (
                     <div key={index} className="flex items-start gap-6">
-                      <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-lg">
+                      <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-700 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-lg">
                         {index + 1}
                       </div>
                       <div className="flex-1">
                         <h4 className="text-white text-xl font-bold mb-2">{mainLine}</h4>
                         {description && (
-                          <p className="text-emerald-300 text-sm leading-relaxed">{description}</p>
+                          <p className="text-green-300 text-sm leading-relaxed">{description}</p>
                         )}
                       </div>
                     </div>
@@ -578,24 +582,24 @@ const Results = () => {
               ) : (
                 <div className="space-y-8">
                   <div className="flex items-start gap-6">
-                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-lg">1</div>
+                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-700 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-lg">1</div>
                     <div>
                       <h4 className="text-white text-xl font-bold mb-3">Remove infected parts</h4>
-                      <p className="text-emerald-200 text-base leading-relaxed">Carefully remove and dispose of infected leaves and stems to prevent spread</p>
+                      <p className="text-green-200 text-base leading-relaxed">Carefully remove and dispose of infected leaves and stems to prevent spread</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-6">
-                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-lg">2</div>
+                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-700 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-lg">2</div>
                     <div>
                       <h4 className="text-white text-xl font-bold mb-3">Apply treatment</h4>
-                      <p className="text-emerald-200 text-base leading-relaxed">Use appropriate fungicide or bactericide as recommended</p>
+                      <p className="text-green-200 text-base leading-relaxed">Use appropriate fungicide or bactericide as recommended</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-6">
-                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-lg">3</div>
+                    <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-700 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-lg">3</div>
                     <div>
                       <h4 className="text-white text-xl font-bold mb-3">Improve conditions</h4>
-                      <p className="text-emerald-200 text-base leading-relaxed">Enhance air circulation and adjust watering practices</p>
+                      <p className="text-green-200 text-base leading-relaxed">Enhance air circulation and adjust watering practices</p>
                     </div>
                   </div>
                 </div>
@@ -604,9 +608,9 @@ const Results = () => {
           </div>
 
           {/* Prevention Guide */}
-          <div className="backdrop-blur-xl rounded-2xl border border-green-500/30 p-8 shadow-2xl shadow-green-500/10 hover:shadow-green-500/20 transition-all duration-300" style={{backgroundColor: 'rgba(20, 34, 22, 0.9)'}}>
+          <div className="theme-surface backdrop-blur-xl rounded-2xl border border-green-500/30 p-8 shadow-2xl shadow-green-500/10 hover:shadow-green-500/20 transition-all duration-300">
             <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -659,7 +663,7 @@ const Results = () => {
 
         {/* Footer */}
         <div className="text-center mt-8 pt-4 border-t border-white/5">
-          <p className="text-xs text-[#A9B6B0]">LeafCure v2.1 • Analysis completed at {new Date().toLocaleTimeString()}</p>
+          <p className="text-xs theme-text-soft">LeafCure v2.1 • Analysis completed at {new Date().toLocaleTimeString()}</p>
           <div className="flex justify-center items-center space-x-4 mt-2">
             <button className="text-xs text-gray-500 hover:text-green-400 transition">Report Issue</button>
             <span className="text-gray-600">•</span>
@@ -674,7 +678,7 @@ const Results = () => {
       {/* Disease Info Modal */}
       {showDiseaseInfo && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-green-500/30 p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
+          <div className="theme-surface-strong rounded-2xl border border-green-500/30 p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
@@ -708,7 +712,7 @@ const Results = () => {
               </div>
               
               <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                <h3 className="text-emerald-300 font-semibold text-lg mb-3 flex items-center gap-2">
+                <h3 className="text-green-300 font-semibold text-lg mb-3 flex items-center gap-2">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -719,7 +723,7 @@ const Results = () => {
                 </p>
               </div>
               
-              <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl p-6 border border-green-500/20">
+              <div className="theme-surface-alt rounded-xl p-6 border border-green-500/20">
                 <h3 className="text-white font-semibold text-lg mb-3 flex items-center gap-2">
                   <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -732,7 +736,7 @@ const Results = () => {
                     <span className="text-gray-300">{plant}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-emerald-400 font-medium">Disease:</span>
+                    <span className="text-green-400 font-medium">Disease:</span>
                     <span className="text-gray-300">{disease}</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -750,7 +754,7 @@ const Results = () => {
             <div className="mt-6 flex justify-end">
               <button 
                 onClick={() => setShowDiseaseInfo(false)}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
               >
                 Close
               </button>
@@ -763,3 +767,4 @@ const Results = () => {
 };
 
 export default Results;
+

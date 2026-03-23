@@ -54,3 +54,8 @@ Thumbs.db
 *.db
 *.sqlite
 *.sqlite3
+
+# Explicit secret file paths
+backend/.env
+frontend/.env.local
+backend/service-account.json

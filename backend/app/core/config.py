@@ -11,16 +11,21 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # ML Model Paths
-VIT_WEIGHTS_PATH = os.path.join(BASE_DIR, "assets", "vit_model.pth")
-SWIN_WEIGHTS_PATH = os.path.join(BASE_DIR, "assets", "swin_model.pth")
+VIT_WEIGHTS_PATH = os.getenv("VIT_WEIGHTS_PATH", os.path.join(BASE_DIR, "assets", "vit_model.pth"))
+SWIN_WEIGHTS_PATH = os.getenv("SWIN_WEIGHTS_PATH", os.path.join(BASE_DIR, "assets", "swin_model.pth"))
 
 # Data Paths - Now using Firebase instead of local JSON
 # KNOWLEDGE_BASE_PATH removed - using Firebase Firestore
 
 # Firebase Service Account Path (used for authentication and database access)
-FIREBASE_SERVICE_ACCOUNT_PATH = os.path.join(BASE_DIR, "service-account.json")
+FIREBASE_SERVICE_ACCOUNT_PATH = os.getenv(
+    "FIREBASE_SERVICE_ACCOUNT_PATH",
+    os.path.join(BASE_DIR, "service-account.json")
+)
+FIREBASE_SERVICE_ACCOUNT_JSON = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON", "")
 print(f"[CONFIG] Firebase service account path: {FIREBASE_SERVICE_ACCOUNT_PATH}")
 print(f"[CONFIG] Service account exists: {os.path.exists(FIREBASE_SERVICE_ACCOUNT_PATH)}")
+print(f"[CONFIG] Firebase service account JSON provided: {bool(FIREBASE_SERVICE_ACCOUNT_JSON)}")
 
 # --- BACKWARD COMPATIBILITY ---
 # For imports that expect 'settings'

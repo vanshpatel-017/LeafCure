@@ -95,6 +95,7 @@ const HeroSection = ({ scrollY, scrollToAuth, handleTestLogin, demoLoading, pref
     }
   }
 
+
   const handleSignup = async (e) => {
     e.preventDefault()
     setError('')
@@ -118,7 +119,7 @@ const HeroSection = ({ scrollY, scrollToAuth, handleTestLogin, demoLoading, pref
       const response = await fetchWithTimeout(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
@@ -128,21 +129,21 @@ const HeroSection = ({ scrollY, scrollToAuth, handleTestLogin, demoLoading, pref
           password: formData.password
         })
       })
-      
+
       const data = await response.json()
-      
+
       if (data.success) {
         setIsSignup(false)
-        setFormData({ 
-          login_identifier: formData.email, 
-          password: '', 
-          username: '', 
-          email: '' 
+        setFormData({
+          login_identifier: formData.email,
+          password: '',
+          username: '',
+          email: ''
         })
         setError('')
         onSignupSuccess?.()
       } else {
-        setError(data.message || 'Registration failed. Please try again.')
+        setError(data.detail || data.message || 'Registration failed. Please try again.')
       }
     } catch (err) {
       if (err.name === 'AbortError') {
@@ -316,6 +317,7 @@ const HeroSection = ({ scrollY, scrollToAuth, handleTestLogin, demoLoading, pref
                 />
               </div>
             )}
+
 
             {!isSignup && (
               <div className="animate-fade-in-up">

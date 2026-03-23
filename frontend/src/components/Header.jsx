@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { FaLeaf, FaBars, FaTimes } from 'react-icons/fa'
+import ThemeToggle from './ThemeToggle'
+import useTheme from '../hooks/useTheme'
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const location = useLocation()
+  const { isLight, toggleTheme } = useTheme()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,9 +23,9 @@ const Header = () => {
 
   return (
     <nav 
-      className={`backdrop-blur-xl border-b transition-all duration-300 fixed w-full top-0 z-50 ${
+      className={`theme-surface-strong backdrop-blur-xl border-b transition-all duration-300 fixed w-full top-0 z-50 ${
         isScrolled 
-          ? 'bg-gray-900/95 border-gray-700/50 shadow-lg' 
+          ? 'shadow-lg' 
           : 'bg-transparent border-transparent'
       }`}
     >
@@ -41,19 +44,19 @@ const Header = () => {
               <span className="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
                 LeafCure
               </span>
-              <p className="text-xs text-gray-400 mt-1">AI Plant Disease Detection</p>
+              <p className="theme-text-soft text-xs mt-1">AI Plant Disease Detection</p>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-5">
             <div className="flex space-x-6">
               <Link 
                 to="/" 
                 className={`text-sm font-medium transition-colors duration-300 ${
                   isActive('/') 
                     ? 'text-green-400 border-b-2 border-green-400 pb-1' 
-                    : 'text-gray-300 hover:text-green-400'
+                    : 'theme-text-soft hover:text-green-400'
                 }`}
               >
                 Home
@@ -63,7 +66,7 @@ const Header = () => {
                 className={`text-sm font-medium transition-colors duration-300 ${
                   isActive('/dashboard') 
                     ? 'text-green-400 border-b-2 border-green-400 pb-1' 
-                    : 'text-gray-300 hover:text-green-400'
+                    : 'theme-text-soft hover:text-green-400'
                 }`}
               >
                 Dashboard
@@ -73,12 +76,14 @@ const Header = () => {
                 className={`text-sm font-medium transition-colors duration-300 ${
                   isActive('/history') 
                     ? 'text-green-400 border-b-2 border-green-400 pb-1' 
-                    : 'text-gray-300 hover:text-green-400'
+                    : 'theme-text-soft hover:text-green-400'
                 }`}
               >
                 History
               </Link>
             </div>
+
+            <ThemeToggle isLight={isLight} onToggle={toggleTheme} />
             
             <Link 
               to="/" 
@@ -90,28 +95,28 @@ const Header = () => {
 
           {/* Mobile Menu Button */}
           <button 
-            className="md:hidden p-2 rounded-lg hover:bg-gray-800 transition-colors"
+            className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? (
-              <FaTimes className="w-6 h-6 text-white" />
+              <FaTimes className="theme-text w-6 h-6" />
             ) : (
-              <FaBars className="w-6 h-6 text-white" />
+              <FaBars className="theme-text w-6 h-6" />
             )}
           </button>
         </div>
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-gray-700/50 animate-in slide-in-from-top-2 duration-300">
+          <div className="md:hidden mt-4 pb-4 border-t border-white/10 animate-in slide-in-from-top-2 duration-300">
             <div className="flex flex-col space-y-4 pt-4">
               <Link 
                 to="/" 
                 className={`text-lg font-medium transition-colors duration-300 ${
                   isActive('/') 
                     ? 'text-green-400' 
-                    : 'text-gray-300 hover:text-green-400'
+                    : 'theme-text-soft hover:text-green-400'
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -122,7 +127,7 @@ const Header = () => {
                 className={`text-lg font-medium transition-colors duration-300 ${
                   isActive('/dashboard') 
                     ? 'text-green-400' 
-                    : 'text-gray-300 hover:text-green-400'
+                    : 'theme-text-soft hover:text-green-400'
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -133,14 +138,16 @@ const Header = () => {
                 className={`text-lg font-medium transition-colors duration-300 ${
                   isActive('/history') 
                     ? 'text-green-400' 
-                    : 'text-gray-300 hover:text-green-400'
+                    : 'theme-text-soft hover:text-green-400'
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 History
               </Link>
+
+              <ThemeToggle isLight={isLight} onToggle={toggleTheme} className="w-fit" />
               
-              <div className="pt-4 border-t border-gray-700/50">
+              <div className="pt-4 border-t border-white/10">
                 <Link 
                   to="/" 
                   className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-center block"

@@ -5,6 +5,8 @@ import { dashboardService } from '../services/dashboardService'
 import newAuth from '../utils/newAuth'
 import { OfflineHistory } from '../utils/offlineHistory'
 import simpleAuthGuard from '../utils/simpleAuthGuard'
+import ThemeToggle from '../components/ThemeToggle'
+import useTheme from '../hooks/useTheme'
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -68,6 +70,7 @@ const Dashboard = () => {
 
   const username = localStorage.getItem('username') || 'User'
   const [isLoaded, setIsLoaded] = useState(false)
+  const { isLight, toggleTheme } = useTheme()
 
   const showToast = (message, type = 'success') => {
     if (type === 'success') {
@@ -348,31 +351,52 @@ const Dashboard = () => {
         
         try {
           const plantParam = selectedPlantType ? `&plant_type=${encodeURIComponent(selectedPlantType)}` : ''
-          console.log(`Frontend: Sending ${file.file.name} (${file.file.size}B) to ${API_BASE_URL}/predict`);
-          
-          const response = await fetch(
-            `${API_BASE_URL}/predict?researcher_mode=${researcherMode}${plantParam}`,
-            {
-              method: 'POST',
-              body: formData,
-              headers: {
-                'Authorization': `Bearer ${tokenManager.getToken()}`
-              },
-              signal: AbortSignal.timeout(30000) // 30 second timeout
+          const requestPath = `/predict?researcher_mode=${researcherMode}${plantParam}`
+          const timeoutMs = researcherMode ? 90000 : 30000
+
+          const fallbackBases = [
+            API_BASE_URL,
+            API_BASE_URL.includes('localhost') ? API_BASE_URL.replace('localhost', '127.0.0.1') : API_BASE_URL,
+            'http://127.0.0.1:8000/api/v1'
+          ].filter((value, index, arr) => value && arr.indexOf(value) === index)
+
+          let response = null
+          let lastNetworkError = null
+
+          for (const baseUrl of fallbackBases) {
+            const predictUrl = `${baseUrl}${requestPath}`
+            try {
+              console.log(`Frontend: Sending ${file.file.name} (${file.file.size}B) to ${predictUrl}`)
+              response = await fetch(predictUrl, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                  'Authorization': `Bearer ${tokenManager.getToken()}`
+                },
+                signal: AbortSignal.timeout(timeoutMs)
+              })
+              break
+            } catch (networkErr) {
+              lastNetworkError = networkErr
+              console.warn(`Frontend: Predict request failed on ${baseUrl}:`, networkErr?.message)
             }
-          )
-          
-          console.log(`Frontend: Response ${response.status}`);
-          
+          }
+
+          if (!response) {
+            throw lastNetworkError || new Error('Failed to fetch')
+          }
+
+          console.log(`Frontend: Response ${response.status}`)
+
           // Update progress during API call
-          setUploadProgress(Math.round(baseProgress + 70));
-          
+          setUploadProgress(Math.round(baseProgress + 70))
+
           if (response.ok) {
             const data = await response.json()
-            console.log('Frontend: Full API response:', data);
-            console.log('Frontend: ViT treatment:', data.vit_treatment);
-            console.log('Frontend: Swin treatment:', data.swin_treatment);
-            
+            console.log('Frontend: Full API response:', data)
+            console.log('Frontend: ViT treatment:', data.vit_treatment)
+            console.log('Frontend: Swin treatment:', data.swin_treatment)
+
             results.push({
               ...data,
               imagePreview: file.preview,
@@ -380,7 +404,7 @@ const Dashboard = () => {
             })
           } else {
             const errorData = await response.json()
-            console.error(`Frontend: Error ${response.status}:`, errorData.detail);
+            console.error(`Frontend: Error ${response.status}:`, errorData.detail)
             results.push({
               success: false,
               error: errorData.detail || 'Analysis failed',
@@ -388,42 +412,24 @@ const Dashboard = () => {
             })
           }
         } catch (err) {
-          console.error(`Frontend: Network error:`, err.message);
-          
+          console.error(`Frontend: Network error:`, err.message)
+
           // Handle timeout specifically
-          if (err.name === 'AbortError' || err.message.includes('timeout')) {
+          if (err.name === 'AbortError' || err.name === 'TimeoutError' || String(err.message).toLowerCase().includes('timeout')) {
             results.push({
               success: false,
-              error: 'Request timed out. Please try with a smaller image or check your connection.',
+              error: 'Research analysis timed out. Please retry, or check backend performance.',
               imagePreview: file.preview
             })
             continue
           }
-          // Fallback demo result when backend is unavailable
-          const demoResults = [
-            {
-              vit_prediction: 'Tomato___Late_blight',
-              swin_prediction: 'Tomato___Late_blight', 
-              vit_confidence: 0.89,
-              swin_confidence: 0.87,
-              vit_treatment: ['Remove infected leaves immediately', 'Apply copper-based fungicide', 'Improve air circulation'],
-              swin_treatment: ['Remove infected leaves immediately', 'Apply copper-based fungicide', 'Improve air circulation'],
-              success: true
-            },
-            {
-              vit_prediction: 'Apple___Apple_scab',
-              swin_prediction: 'Apple___Apple_scab',
-              vit_confidence: 0.92,
-              swin_confidence: 0.90,
-              vit_treatment: ['Apply fungicide spray', 'Remove fallen leaves', 'Prune for better airflow'],
-              swin_treatment: ['Apply fungicide spray', 'Remove fallen leaves', 'Prune for better airflow'],
-              success: true
-            }
-          ]
-          const randomResult = demoResults[Math.floor(Math.random() * demoResults.length)]
-          
+
+          const networkError = String(err.message || '').toLowerCase().includes('failed to fetch')
           results.push({
-            ...randomResult,
+            success: false,
+            error: networkError
+              ? 'Cannot reach backend. Ensure backend is running on port 8000 and try again.'
+              : (err.message || 'Analysis failed. Please try again.'),
             imagePreview: file.preview
           })
         }
@@ -436,12 +442,14 @@ const Dashboard = () => {
       const endTime = Date.now()
       const totalTime = ((endTime - startTime) / 1000).toFixed(2)
       
+      const successCount = results.filter(r => r.success).length
+
       localStorage.setItem('batchAnalysisResults', JSON.stringify({
         results,
         totalTime,
         timestamp: new Date().toISOString(),
         totalImages: selectedFiles.length,
-        successCount: results.filter(r => r.success).length
+        successCount
       }))
       
       // Store in local history for offline access
@@ -472,6 +480,12 @@ const Dashboard = () => {
       setLastUploadedImages(selectedFiles.slice(0, 3))
       fetchStats()
       
+      if (successCount === 0) {
+        const firstError = results.find(r => r.error)?.error || 'Analysis failed. Please try again.'
+        showToast(firstError, 'error')
+        return
+      }
+
       if (researcherMode) {
         navigate('/results/detailed')
       } else {
@@ -490,11 +504,11 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cover bg-center bg-fixed relative overscroll-none" style={{backgroundImage: 'url(/image/background.avif)'}}>
-      <div className="absolute inset-0 bg-black/60"></div>
+    <div className="theme-page min-h-screen bg-cover bg-center bg-fixed relative overscroll-none" style={{backgroundImage: 'var(--app-background-image)'}}>
+      <div className="theme-overlay absolute inset-0"></div>
       
       {/* Header */}
-      <nav className={`backdrop-blur-xl border-b border-gray-700/50 fixed w-full top-0 z-30 transition-transform duration-500 ease-in-out ${showHeader ? 'translate-y-0' : '-translate-y-full'}`} style={{backgroundColor: 'rgba(20, 34, 22, 0.9)'}}>
+      <nav className={`theme-surface-strong backdrop-blur-xl border-b fixed w-full top-0 z-30 transition-transform duration-500 ease-in-out ${showHeader ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <svg className="w-8 h-8 text-green-400" fill="currentColor" viewBox="0 0 24 24">
@@ -503,6 +517,7 @@ const Dashboard = () => {
             <span className="text-2xl font-bold text-white">LeafCure</span>
           </div>
           <div className="flex items-center space-x-4">
+            <ThemeToggle isLight={isLight} onToggle={toggleTheme} />
             <button 
               onClick={() => setShowShortcuts(true)} 
               className="p-2 text-gray-400 hover:text-green-400 transition" 
@@ -702,7 +717,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className={`grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{transitionDelay: '300ms'}}>
-            <div className="backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-green-500/40 col-span-2 sm:col-span-1 hover:border-green-400/60 hover:shadow-lg hover:shadow-green-500/20 transition-all duration-500 hover:scale-105 group" style={{backgroundColor: 'rgba(20, 34, 22, 0.8)'}}>
+            <div className="theme-surface backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-green-500/40 col-span-2 sm:col-span-1 hover:border-green-400/60 hover:shadow-lg hover:shadow-green-500/20 transition-all duration-500 hover:scale-105 group">
               <div className="flex items-center space-x-3 sm:space-x-4">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500/30 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-green-500/50 group-hover:scale-110 transition-all duration-300">
                   <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -729,7 +744,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-            <div className="backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-green-500/40 col-span-2 sm:col-span-1 hover:border-green-400/60 hover:shadow-lg hover:shadow-green-500/20 transition-all duration-500 hover:scale-105 group" style={{backgroundColor: 'rgba(20, 34, 22, 0.8)'}}>
+            <div className="theme-surface backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-green-500/40 col-span-2 sm:col-span-1 hover:border-green-400/60 hover:shadow-lg hover:shadow-green-500/20 transition-all duration-500 hover:scale-105 group">
               <div className="flex items-center space-x-3 sm:space-x-4">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500/30 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-green-500/50 group-hover:scale-110 transition-all duration-300">
                   <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -756,7 +771,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-            <div className="backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-green-500/40 col-span-2 sm:col-span-1 hover:border-green-400/60 hover:shadow-lg hover:shadow-green-500/20 transition-all duration-500 hover:scale-105 group" style={{backgroundColor: 'rgba(20, 34, 22, 0.8)'}}>
+            <div className="theme-surface backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-green-500/40 col-span-2 sm:col-span-1 hover:border-green-400/60 hover:shadow-lg hover:shadow-green-500/20 transition-all duration-500 hover:scale-105 group">
               <div className="flex items-center space-x-3 sm:space-x-4">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500/30 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-green-500/50 group-hover:scale-110 transition-all duration-300">
                   <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -769,7 +784,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-            <div className="backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-emerald-500/40 col-span-2 sm:col-span-1 hover:border-emerald-400/60 hover:shadow-lg hover:shadow-emerald-500/20 transition-all duration-500 hover:scale-105 group" style={{backgroundColor: 'rgba(20, 34, 22, 0.8)'}}>
+            <div className="theme-surface backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-emerald-500/40 col-span-2 sm:col-span-1 hover:border-emerald-400/60 hover:shadow-lg hover:shadow-emerald-500/20 transition-all duration-500 hover:scale-105 group">
               <div className="flex items-center space-x-3 sm:space-x-4">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-500/30 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500/50 group-hover:scale-110 transition-all duration-300">
                   <svg className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -785,7 +800,7 @@ const Dashboard = () => {
           </div>
 
           {/* Upload Section */}
-          <div className={`backdrop-blur-xl rounded-3xl shadow-2xl p-6 sm:p-8 border border-gray-700/50 mb-8 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{backgroundColor: 'rgba(20, 34, 22, 0.9)', transitionDelay: '450ms'}}>
+          <div className={`theme-surface-strong backdrop-blur-xl rounded-3xl shadow-2xl p-6 sm:p-8 border border-gray-700/50 mb-8 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{transitionDelay: '450ms'}}>
             <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
               {/* Left: Upload Area */}
               <div className="flex flex-col">
@@ -797,7 +812,7 @@ const Dashboard = () => {
                   onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                   onDragLeave={() => setDragOver(false)}
                   onDrop={handleDrop}
-                  className={`border-4 border-dashed rounded-2xl text-center transition flex-1 flex flex-col items-center justify-center relative min-h-[300px] sm:min-h-[400px] ${
+                  className={`theme-surface-alt border-4 border-dashed rounded-2xl text-center transition flex-1 flex flex-col items-center justify-center relative min-h-[300px] sm:min-h-[400px] ${
                     dragOver ? 'border-green-400 bg-green-500/10 scale-105' : 'border-gray-600'
                   }`}
                 >
@@ -833,7 +848,7 @@ const Dashboard = () => {
                               </svg>
                             </button>
                             <div className="absolute bottom-2 left-2 right-2">
-                              <div className="bg-black/70 backdrop-blur-sm rounded px-2 py-1">
+                              <div className="theme-overlay backdrop-blur-sm rounded px-2 py-1">
                                 <p className="text-white text-xs font-medium truncate">
                                   {file.file.name}
                                 </p>
@@ -907,28 +922,28 @@ const Dashboard = () => {
                   Photography Tips
                 </h3>
                 <div className="space-y-3 sm:space-y-4">
-                  <div className="flex items-start space-x-3 bg-gray-800/50 p-3 sm:p-4 rounded-lg border border-gray-700 hover:border-green-500/50 hover:bg-gray-800/70 transition-all duration-300 hover:scale-105 group">
+                  <div className="theme-surface-alt flex items-start space-x-3 p-3 sm:p-4 rounded-lg border border-gray-700 hover:border-green-500/50 hover:bg-gray-800/70 transition-all duration-300 hover:scale-105 group">
                     <span className="text-green-400 text-lg sm:text-xl flex-shrink-0 group-hover:scale-110 transition-transform duration-300">☀️</span>
                     <div className="min-w-0">
                       <p className="text-white font-semibold text-sm sm:text-base group-hover:text-green-100 transition-colors duration-300">Natural Light</p>
                       <p className="text-gray-400 text-xs sm:text-sm group-hover:text-gray-300 transition-colors duration-300">Use daylight for best color accuracy</p>
                     </div>
                   </div>
-                  <div className="flex items-start space-x-3 bg-gray-800/50 p-3 sm:p-4 rounded-lg border border-gray-700 hover:border-green-500/50 hover:bg-gray-800/70 transition-all duration-300 hover:scale-105 group">
+                  <div className="theme-surface-alt flex items-start space-x-3 p-3 sm:p-4 rounded-lg border border-gray-700 hover:border-green-500/50 hover:bg-gray-800/70 transition-all duration-300 hover:scale-105 group">
                     <span className="text-green-400 text-lg sm:text-xl flex-shrink-0 group-hover:scale-110 transition-transform duration-300">🎯</span>
                     <div className="min-w-0">
                       <p className="text-white font-semibold text-sm sm:text-base group-hover:text-green-100 transition-colors duration-300">Focus on Symptoms</p>
                       <p className="text-gray-400 text-xs sm:text-sm group-hover:text-gray-300 transition-colors duration-300">Capture affected areas clearly</p>
                     </div>
                   </div>
-                  <div className="flex items-start space-x-3 bg-gray-800/50 p-3 sm:p-4 rounded-lg border border-gray-700 hover:border-green-500/50 hover:bg-gray-800/70 transition-all duration-300 hover:scale-105 group">
+                  <div className="theme-surface-alt flex items-start space-x-3 p-3 sm:p-4 rounded-lg border border-gray-700 hover:border-green-500/50 hover:bg-gray-800/70 transition-all duration-300 hover:scale-105 group">
                     <span className="text-green-400 text-lg sm:text-xl flex-shrink-0 group-hover:scale-110 transition-transform duration-300">🔍</span>
                     <div className="min-w-0">
                       <p className="text-white font-semibold text-sm sm:text-base group-hover:text-green-100 transition-colors duration-300">Full Leaf View</p>
                       <p className="text-gray-400 text-xs sm:text-sm group-hover:text-gray-300 transition-colors duration-300">Include entire leaf in frame</p>
                     </div>
                   </div>
-                  <div className="flex items-start space-x-3 bg-gray-800/50 p-3 sm:p-4 rounded-lg border border-gray-700 hover:border-green-500/50 hover:bg-gray-800/70 transition-all duration-300 hover:scale-105 group">
+                  <div className="theme-surface-alt flex items-start space-x-3 p-3 sm:p-4 rounded-lg border border-gray-700 hover:border-green-500/50 hover:bg-gray-800/70 transition-all duration-300 hover:scale-105 group">
                     <span className="text-green-400 text-lg sm:text-xl flex-shrink-0 group-hover:scale-110 transition-transform duration-300">🚫</span>
                     <div className="min-w-0">
                       <p className="text-white font-semibold text-sm sm:text-base group-hover:text-green-100 transition-colors duration-300">Avoid Shadows</p>
@@ -1709,5 +1724,6 @@ const Dashboard = () => {
 }
 
 export default Dashboard
+
 
 

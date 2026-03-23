@@ -9,7 +9,6 @@ import ProcessSection from '../components/HomePage/ProcessSection'
 import AdvancedFeatures from '../components/HomePage/AdvancedFeatures'
 import ModernStatsSection from '../components/HomePage/ModernStatsSection'
 import MLTransparencySection from '../components/HomePage/MLTransparencySection'
-import CTASection from '../components/HomePage/CTASection'
 import TestimonialsSection from '../components/HomePage/TestimonialsSection'
 import FAQSection from '../components/HomePage/FAQSection'
 import ModernFooter from '../components/HomePage/ModernFooter'
@@ -18,6 +17,7 @@ import HowItWorksSection from '../components/HomePage/HowItWorksSection'
 import { API_BASE_URL, tokenManager } from '../config/api'
 import { usePerformanceOptimization } from '../hooks/usePerformanceOptimization'
 import { statsService } from '../services/statsService'
+import { demoService } from '../services/demoService'
 import '../styles/animations.css'
 import '../styles/modern.css'
 import { FaCheckCircle } from 'react-icons/fa'
@@ -141,20 +141,8 @@ const HomePage = () => {
   const handleTestLogin = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/bypass-login`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          login_identifier: 'temp2@example.com',
-          password: 'temp@123'
-        })
-      })
-      
-      const data = await response.json()
-      
+      const data = await demoService.loginAsDemo()
+
       if (data.success) {
         tokenManager.setToken(data.token)
         localStorage.setItem('userId', data.user_id)
@@ -180,8 +168,8 @@ const HomePage = () => {
   }, [])
 
   return (
-    <div className="min-h-screen bg-cover bg-center bg-fixed relative overscroll-none" style={{backgroundImage: 'url(/image/background.avif)'}}>
-      <div className="absolute inset-0 bg-black/60"></div>
+    <div className="theme-page min-h-screen bg-cover bg-center bg-fixed relative overscroll-none" style={{backgroundImage: 'var(--app-background-image)'}}>
+      <div className="theme-overlay absolute inset-0"></div>
 
       {/* Reduced background particles - only on high-end devices */}
       {!prefersReducedMotion && !isLowEndDevice && (

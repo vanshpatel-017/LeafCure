@@ -308,6 +308,7 @@ async def logout_user(response: Response):
     response.delete_cookie("auth_token")
     return {"success": True, "message": "Logged out successfully"}
 
+
 @api_router.post("/auth/register", response_model=AuthResponse)
 async def register_user(user_data: UserRegister):
     """
@@ -345,57 +346,33 @@ async def login_user(user_data: UserLogin, response: Response):
     # This token is used by frontend Authorization headers for API calls.
     # Prefer Firebase token when available; otherwise fall back to local JWT.
     api_token = None
+    invalid_api_key = False
 
-    try:
-        from app.services.auth_service import authenticate_user, find_user_by_username_or_email
+    from app.core.config import FIREBASE_WEB_API_KEY
+    invalid_api_key = (not FIREBASE_WEB_API_KEY) or FIREBASE_WEB_API_KEY.startswith("your_") or "placeholder" in FIREBASE_WEB_API_KEY.lower()
 
-        auth_result = await authenticate_user(login_identifier, user_data.password)
-        if auth_result and auth_result.success:
-            username = auth_result.username or username
-            is_admin = bool(auth_result.is_admin)
-            resolved_user_id = auth_result.user_id or resolved_user_id
-            api_token = auth_result.token
-
-            resolved_email = await find_user_by_username_or_email(login_identifier)
-            if resolved_email:
-                email = resolved_email
-
-            logger.info(f"Firebase login successful for user: {username}, is_admin: {is_admin}")
-    except Exception as auth_err:
-        logger.warning(f"Firebase auth path unavailable, using local fallback for '{login_identifier}': {auth_err}")
-
-        # Fallback: read admin attributes from Firestore user doc if available.
+    # Fast local mode when Firebase key is not configured.
+    if invalid_api_key:
+        is_admin = login_identifier.lower() in ['vansh@gmail.com', 'admin@leafcure.com', 'vansh', 'admin']
+        logger.info(f"Using local auth mode for user: {username}, is_admin: {is_admin}")
+    else:
         try:
-            from firebase_admin import firestore
-            db = firestore.client()
-            user_doc = None
+            from app.services.auth_service import authenticate_user, find_user_by_username_or_email
 
-            if '@' in login_identifier:
-                docs = list(db.collection('users').where('email', '==', login_identifier).limit(1).stream())
-            else:
-                docs = list(db.collection('users').where('username', '==', login_identifier).limit(1).stream())
+            auth_result = await authenticate_user(login_identifier, user_data.password)
+            if auth_result and auth_result.success:
+                username = auth_result.username or username
+                is_admin = bool(auth_result.is_admin)
+                resolved_user_id = auth_result.user_id or resolved_user_id
+                api_token = auth_result.token
 
-            if docs:
-                user_doc = docs[0].to_dict()
+                resolved_email = await find_user_by_username_or_email(login_identifier)
+                if resolved_email:
+                    email = resolved_email
 
-            if user_doc:
-                role_value = str(user_doc.get('role', '')).lower()
-                is_admin = bool(
-                    user_doc.get('is_admin', False)
-                    or user_doc.get('isAdmin', False)
-                    or user_doc.get('admin', False)
-                    or user_doc.get('is_superadmin', False)
-                    or user_doc.get('isSuperAdmin', False)
-                    or role_value in ['admin', 'super_admin', 'superadmin']
-                )
-                username = user_doc.get('username', username)
-                email = user_doc.get('email', email)
-                logger.info(f"Local fallback resolved user attributes for {username}, is_admin: {is_admin}")
-            else:
-                # Last-resort backward compatibility for demo credentials.
-                is_admin = login_identifier.lower() in ['vansh@gmail.com', 'admin@leafcure.com', 'vansh', 'admin']
-        except Exception as lookup_err:
-            logger.warning(f"Could not resolve admin attributes from Firestore fallback: {lookup_err}")
+                logger.info(f"Firebase login successful for user: {username}, is_admin: {is_admin}")
+        except Exception as auth_err:
+            logger.warning(f"Firebase auth failed, falling back to local auth for '{login_identifier}': {auth_err}")
             is_admin = login_identifier.lower() in ['vansh@gmail.com', 'admin@leafcure.com', 'vansh', 'admin']
 
     # Session cookie token used by /auth/validate route.
@@ -1383,6 +1360,11 @@ async def get_system_stats(uid: str = Depends(verify_admin_simple)):
             "uptime": "Unknown",
             "unread_messages": 0
         }
+
+
+
+
+
 
 
 

@@ -1,13 +1,14 @@
 import os
+import json
 from typing import Optional
 
 from fastapi import HTTPException, Header, Depends
 from firebase_admin import auth, initialize_app, credentials, firestore
 from firebase_admin._auth_utils import InvalidIdTokenError
-from typing import Optional
 
 # Project Configuration
-from app.core.config import FIREBASE_SERVICE_ACCOUNT_PATH
+from app.core.config import FIREBASE_SERVICE_ACCOUNT_PATH, FIREBASE_SERVICE_ACCOUNT_JSON
+from app.core.logging_config import logger
 from app.models.schemas import AuthResponse
 
 # --- Global Firebase App Instance ---
@@ -31,13 +32,17 @@ def initialize_firebase_app():
         # App not initialized yet, continue with initialization
         pass
     
-    if not os.path.exists(FIREBASE_SERVICE_ACCOUNT_PATH):
-        print(f"[ERROR] Firebase service account file not found: {FIREBASE_SERVICE_ACCOUNT_PATH}")
-        print("[ERROR] Set FIREBASE_SERVICE_ACCOUNT_PATH env var or place service-account.json in backend/")
-        return False
-    
     try:
-        cred = credentials.Certificate(FIREBASE_SERVICE_ACCOUNT_PATH)
+        if FIREBASE_SERVICE_ACCOUNT_JSON:
+            print("[INFO] Initializing Firebase from FIREBASE_SERVICE_ACCOUNT_JSON")
+            cred = credentials.Certificate(json.loads(FIREBASE_SERVICE_ACCOUNT_JSON))
+        else:
+            if not os.path.exists(FIREBASE_SERVICE_ACCOUNT_PATH):
+                print(f"[ERROR] Firebase service account file not found: {FIREBASE_SERVICE_ACCOUNT_PATH}")
+                print("[ERROR] Set FIREBASE_SERVICE_ACCOUNT_PATH env var, FIREBASE_SERVICE_ACCOUNT_JSON, or place service-account.json in backend/")
+                return False
+            cred = credentials.Certificate(FIREBASE_SERVICE_ACCOUNT_PATH)
+
         FIREBASE_APP = initialize_app(cred)
         print("[SUCCESS] Firebase Admin SDK initialized successfully")
         return True
@@ -205,8 +210,9 @@ async def authenticate_user(login_identifier: str, password: str) -> AuthRespons
     import requests
     from app.core.config import FIREBASE_WEB_API_KEY
     
-    if not FIREBASE_WEB_API_KEY:
-        raise HTTPException(status_code=500, detail="Firebase API key not configured")
+    invalid_api_key = (not FIREBASE_WEB_API_KEY) or FIREBASE_WEB_API_KEY.startswith("your_") or "placeholder" in FIREBASE_WEB_API_KEY.lower()
+    if invalid_api_key:
+        raise HTTPException(status_code=503, detail="Firebase API key is not configured for live auth")
     
     # Convert username to email if needed
     email = await find_user_by_username_or_email(login_identifier)
@@ -223,7 +229,7 @@ async def authenticate_user(login_identifier: str, password: str) -> AuthRespons
             "returnSecureToken": True
         }
         
-        response = requests.post(url, json=payload, timeout=30)
+        response = requests.post(url, json=payload, timeout=6)
         
         if response.status_code == 200:
             data = response.json()

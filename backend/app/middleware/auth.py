@@ -7,10 +7,11 @@ from fastapi.responses import RedirectResponse
 import jwt
 from datetime import datetime, timedelta
 from typing import Optional
+import os
 
 class AuthMiddleware:
     def __init__(self):
-        self.secret_key = "leafcure-secret-key-2024"  # Use a consistent secret key
+        self.secret_key = os.getenv('JWT_SECRET_KEY', 'leafcure-dev-secret-change-in-production')
         self.protected_routes = ["/dashboard", "/admin", "/history", "/results"]
     
     def create_token(self, username: str, is_admin: bool = False) -> str:

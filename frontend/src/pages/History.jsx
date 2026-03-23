@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tokenManager, API_BASE_URL } from '../config/api'
+import ThemeToggle from '../components/ThemeToggle'
+import useTheme from '../hooks/useTheme'
 
 const History = () => {
   const navigate = useNavigate()
@@ -10,6 +12,7 @@ const History = () => {
   const [filter, setFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState('date')
+  const { isLight, toggleTheme } = useTheme()
 
   const username = localStorage.getItem('username') || 'User'
 
@@ -111,10 +114,10 @@ const History = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{backgroundImage: 'url(/image/background.avif)'}}>
-      <div className="absolute inset-0 bg-black/60"></div>
+    <div className="theme-page min-h-screen bg-cover bg-center bg-fixed relative" style={{backgroundImage: 'var(--app-background-image)'}}>
+      <div className="theme-overlay absolute inset-0"></div>
       
-      <nav className="backdrop-blur-xl border-b border-gray-700/50 relative z-10" style={{backgroundColor: 'rgba(20, 34, 22, 0.9)'}}>
+      <nav className="theme-surface-strong backdrop-blur-xl border-b relative z-10">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <svg className="w-8 h-8 text-green-400" fill="currentColor" viewBox="0 0 24 24">
@@ -123,6 +126,7 @@ const History = () => {
             <span className="text-2xl font-bold text-white">LeafCure</span>
           </div>
           <div className="flex items-center space-x-4">
+            <ThemeToggle isLight={isLight} onToggle={toggleTheme} />
             <button onClick={() => navigate('/dashboard')} className="px-4 py-2 bg-green-500/90 text-white rounded-lg hover:bg-green-600 transition font-medium flex items-center space-x-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

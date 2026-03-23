@@ -2,10 +2,11 @@ import jwt
 from datetime import datetime, timedelta
 from fastapi import HTTPException, status
 from typing import Optional, Dict
+import os
 
 class SimpleAuthService:
     def __init__(self):
-        self.secret_key = "leafcure-simple-auth-2024"
+        self.secret_key = os.getenv('SIMPLE_AUTH_SECRET_KEY', 'leafcure-simple-dev-secret-change-in-production')
         self.algorithm = "HS256"
         self.token_expiry_hours = 24
     

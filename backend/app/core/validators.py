@@ -8,11 +8,21 @@ from typing import Dict, List, Optional, Union
 from fastapi import HTTPException, UploadFile
 from PIL import Image
 import io
-import magic
+try:
+    import magic
+except ImportError:
+    magic = None
 
-# It is highly recommended to use battle-tested libraries for sanitization.
-import bleach
-from werkzeug.utils import secure_filename
+# Optional libs for sanitization and filename safety.
+try:
+    import bleach
+except ImportError:
+    bleach = None
+
+try:
+    from werkzeug.utils import secure_filename
+except ImportError:
+    secure_filename = None
 
 logger = logging.getLogger(__name__)
 
@@ -168,14 +178,19 @@ class InputValidator:
                 logger.warning(f"Potential XSS attempt detected in input: {text[:100]}")
                 raise HTTPException(status_code=400, detail="Invalid characters detected")
         
-        if allow_html:
-            # Allow safe HTML tags only
-            allowed_tags = ['p', 'br', 'strong', 'em', 'u', 'b', 'i']
-            allowed_attributes = {'*': ['class']}
-            sanitized = bleach.clean(text, tags=allowed_tags, attributes=allowed_attributes, strip=True)
+        if bleach is not None:
+            if allow_html:
+                # Allow safe HTML tags only
+                allowed_tags = ['p', 'br', 'strong', 'em', 'u', 'b', 'i']
+                allowed_attributes = {'*': ['class']}
+                sanitized = bleach.clean(text, tags=allowed_tags, attributes=allowed_attributes, strip=True)
+            else:
+                # Strip all HTML tags
+                sanitized = bleach.clean(text, tags=[], attributes={}, strip=True)
         else:
-            # Strip all HTML tags
-            sanitized = bleach.clean(text, tags=[], attributes={}, strip=True)
+            # Fallback sanitization when bleach is unavailable
+            sanitized = re.sub(r'<[^>]+>', '', text)
+            sanitized = sanitized.replace('&', '&amp;').replace('<', '').replace('>', '')
         
         # Additional sanitization
         sanitized = sanitized.strip()
@@ -245,8 +260,11 @@ class InputValidator:
         if not filename:
             return "unknown"
         
-        # Use Werkzeug's secure_filename as base
-        sanitized = secure_filename(filename)
+        # Use Werkzeug's secure_filename as base when available
+        if secure_filename is not None:
+            sanitized = secure_filename(filename)
+        else:
+            sanitized = re.sub(r'[^A-Za-z0-9._-]+', '_', filename)
         
         if not sanitized:
             sanitized = "unknown"
@@ -288,8 +306,8 @@ class InputValidator:
             )
         
         # Validate file extension
-        allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'}
-        file_ext = file.filename.lower().split('.')[-1] if '.' in file.filename else ''
+        allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.jfif'}
+        file_ext = f".{file.filename.lower().rsplit('.', 1)[-1]}" if '.' in file.filename else ''
         if file_ext not in allowed_extensions:
             raise HTTPException(
                 status_code=415, 
@@ -307,17 +325,20 @@ class InputValidator:
                 detail="Invalid file type. File must be an image"
             )
         
-        # Additional security: Verify actual file format using python-magic
-        try:
-            file_type = magic.from_buffer(contents, mime=True)
-            if file_type not in allowed_mime_types:
-                raise HTTPException(
-                    status_code=415, 
-                    detail="File format does not match extension"
-                )
-        except Exception as e:
-            logger.warning(f"Could not verify file format: {e}")
-            # Fall back to basic validation
+        # Additional security: Verify actual file format using python-magic (if available)
+        if magic is not None:
+            try:
+                file_type = magic.from_buffer(contents, mime=True)
+                if file_type not in allowed_mime_types:
+                    raise HTTPException(
+                        status_code=415, 
+                        detail="File format does not match extension"
+                    )
+            except Exception as e:
+                logger.warning(f"Could not verify file format: {e}")
+                # Fall back to basic validation
+        else:
+            logger.info("python-magic not installed; skipping MIME sniffing and using PIL verification")
         
         # Additional check: Verify it's actually an image using PIL
         try:

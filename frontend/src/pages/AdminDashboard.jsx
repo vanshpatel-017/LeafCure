@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { API_BASE_URL, tokenManager } from '../config/api'
 import serverAuth from '../utils/serverAuth'
+import ThemeToggle from '../components/ThemeToggle'
+import useTheme from '../hooks/useTheme'
 
 const AdminDashboard = () => {
   const navigate = useNavigate()
@@ -27,6 +29,7 @@ const AdminDashboard = () => {
   const [profileData, setProfileData] = useState({ username: '', email: '', currentPassword: '', newPassword: '' })
   const [systemStats, setSystemStats] = useState(null)
   const [deleteModal, setDeleteModal] = useState({ show: false, user: null })
+  const { isLight, toggleTheme } = useTheme()
 
   const username = localStorage.getItem('username') || 'Admin'
 
@@ -320,8 +323,8 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-cover bg-center bg-fixed relative" style={{backgroundImage: 'url(/image/background.avif)'}}>
-        <div className="absolute inset-0 bg-black/60"></div>
+      <div className="theme-page min-h-screen bg-cover bg-center bg-fixed relative" style={{backgroundImage: 'var(--app-background-image)'}}>
+        <div className="theme-overlay absolute inset-0"></div>
         <div className="relative z-10 min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="w-20 h-20 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
@@ -334,11 +337,11 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cover bg-center bg-fixed relative overscroll-none" style={{backgroundImage: 'url(/image/background.avif)'}}>
-      <div className="absolute inset-0 bg-black/60"></div>
+    <div className="theme-page min-h-screen bg-cover bg-center bg-fixed relative overscroll-none" style={{backgroundImage: 'var(--app-background-image)'}}>
+      <div className="theme-overlay absolute inset-0"></div>
       
       {/* Header */}
-      <nav className={`backdrop-blur-xl border-b border-gray-700/50 fixed w-full top-0 z-30 transition-transform duration-500 ease-in-out ${showHeader ? 'translate-y-0' : '-translate-y-full'}`} style={{backgroundColor: 'rgba(20, 34, 22, 0.9)'}}>
+      <nav className={`theme-surface-strong backdrop-blur-xl border-b fixed w-full top-0 z-30 transition-transform duration-500 ease-in-out ${showHeader ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <svg className="w-8 h-8 text-green-400" fill="currentColor" viewBox="0 0 24 24">
@@ -348,6 +351,7 @@ const AdminDashboard = () => {
             <span className="px-3 py-1 bg-green-500/20 border border-green-500/50 text-green-300 text-sm font-semibold rounded-full">Admin</span>
           </div>
           <div className="flex items-center space-x-4">
+            <ThemeToggle isLight={isLight} onToggle={toggleTheme} />
             <button onClick={() => navigate('/dashboard')} className="px-4 py-2 bg-green-500/90 text-white rounded-lg hover:bg-green-600 transition font-medium flex items-center space-x-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
